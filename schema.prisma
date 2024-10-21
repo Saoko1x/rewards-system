@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+ }
+
+model Company {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  profiles  Profile[]
+  weeks     Week[]
+  boostTasks BoostTask[]
+  trainings  Training[]
+  events     Event[]
+  onboarding Onboarding?
+}
+
+model Profile {
+  id         Int       @id @default(autoincrement())
+  userid     String    @unique @db.Uuid 
+  updated_at DateTime?  @updatedAt
+  username   String?
+  first_name  String?
+  last_name   String?
+  phone       String?
+  birthdate DateTime?
+  genre    String?
+
+  companyid  Int?      @default(1)
+  company    Company?   @relation(fields: [companyid], references: [id])
+  completedTasks Task[]
+  completedBoostTasks BoostTask[]
+  completedTrainingTasks TrainingTask[]
+  onboardingResponses UserOnboardingResponse[]
+
+  @@map("profiles")
+}
+
+
+model Event {
+  id         Int      @id @default(autoincrement())
+  title      String
+  date       DateTime
+  imageUrl   String
+  eventUrl   String
+  categoryId Int
+  companyId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category   Category @relation(fields: [categoryId], references: [id])
+  company    Company  @relation(fields: [companyId], references: [id])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events    Event[]
+}
+
+
+model Onboarding {
+  id        Int       @id @default(autoincrement())
+  companyId Int       @unique @default(1)
+  company   Company   @relation(fields: [companyId], references: [id])
+  questions OnboardingQuestion[]
+}
+
+model OnboardingQuestion {
+  id           Int      @id @default(autoincrement())
+  question     String
+  onboardingId Int
+  onboarding   Onboarding @relation(fields: [onboardingId], references: [id])
+  answers      OnboardingAnswer[]
+  userResponses UserOnboardingResponse[]
+}
+
+model OnboardingAnswer {
+  id                   Int    @id @default(autoincrement())
+  answerText           String
+  onboardingQuestionId Int
+  onboardingQuestion   OnboardingQuestion @relation(fields: [onboardingQuestionId], references: [id])
+  userResponses        UserOnboardingResponse[]
+}
+
+model UserOnboardingResponse {
+  id         Int      @id @default(autoincrement())
+  profileId  Int
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  questionId Int
+  question   OnboardingQuestion @relation(fields: [questionId], references: [id])
+  answerId   Int
+  answer     OnboardingAnswer @relation(fields: [answerId], references: [id])
+
+  @@unique([profileId, questionId])
+}
+
+model Week {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id])
+  tasks     Task[]
+}
+
+model Task {
+  id        Int       @id @default(autoincrement())
+  weekId    Int
+  week      Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  textTask  TextTask?
+  videoTask VideoTask?
+  tipsTask  TipsTask?
+  completedBy Profile?  @relation(fields: [completedById], references: [id])
+  completedById Int?
+  completedAt DateTime?
+  status     String? @default("pending")
+}
+
+model TextTask {
+  id     Int    @id @default(autoincrement())
+  taskId Int    @unique
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name   String
+  title1 String
+  text1  String
+  imageUrl1 String
+  title2 String
+  text2  String
+  imageUrl2 String
+  title3 String
+  text3  String
+}
+
+model VideoTask {
+  id       Int    @id @default(autoincrement())
+  taskId   Int    @unique
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  videoUrl String
+  name     String
+}
+
+model TipsTask {
+  id     Int    @id @default(autoincrement())
+  taskId Int    @unique
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name   String
+  title1 String
+  text1  String
+  imageUrl1 String
+  title2 String
+  text2  String
+  imageUrl2 String
+  title3 String
+  text3  String
+}
+
+model BoostTask {
+  id        Int    @id @default(autoincrement())
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  textTask  BoostTextTask?
+  videoTask BoostVideoTask?
+  tipsTask  BoostTipsTask?
+  completedBy Profile?  @relation(fields: [completedById], references: [id])
+  completedById Int?
+  completedAt DateTime?
+  status     String? @default("pending")  
+}
+
+model BoostTextTask {
+  id        Int    @id @default(autoincrement())
+  taskId    Int    @unique 
+  task      BoostTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name      String
+  title1    String
+  text1     String
+  imageUrl1 String
+  title2    String
+  text2     String
+  imageUrl2 String
+  title3    String
+  text3     String
+}
+
+model BoostVideoTask {
+  id       Int    @id @default(autoincrement())
+  taskId   Int    @unique 
+  task     BoostTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  videoUrl String
+  name     String
+}
+
+model BoostTipsTask {
+  id        Int    @id @default(autoincrement())
+  taskId    Int    @unique 
+  task      BoostTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name      String
+  title1    String
+  text1     String
+  imageUrl1 String
+  title2    String
+  text2     String
+  imageUrl2 String
+  title3    String
+  text3     String
+}
+
+model Training {
+  id        Int    @id @default(autoincrement())
+  name      String
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  tasks     TrainingTask[] 
+}
+
+model TrainingTask {
+  id        Int    @id @default(autoincrement())
+  trainingId Int
+  training  Training   @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  textTask  TrainingTextTask?   
+  videoTask TrainingVideoTask?  
+  tipsTask  TrainingTipsTask?   
+  completedBy Profile?  @relation(fields: [completedById], references: [id])
+  completedById Int?
+  completedAt DateTime?
+  status     String? @default("pending")
+}
+
+model TrainingTextTask {
+  id        Int    @id @default(autoincrement())
+  taskId    Int    @unique 
+  task      TrainingTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name      String
+  title1    String
+  text1     String
+  imageUrl1 String
+  title2    String
+  text2     String
+  imageUrl2 String
+  title3    String
+  text3     String
+}
+
+model TrainingVideoTask {
+  id       Int    @id @default(autoincrement())
+  taskId   Int    @unique 
+  task     TrainingTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  videoUrl String 
+  name     String 
+}
+
+model TrainingTipsTask {
+  id        Int    @id @default(autoincrement())
+  taskId    Int    @unique 
+  task      TrainingTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name      String
+  title1    String
+  text1     String
+  imageUrl1 String
+  title2    String
+  text2     String
+  imageUrl2 String
+  title3    String
+  text3     String
+}

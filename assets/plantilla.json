@@ -1,0 +1,36 @@
+[
+  {
+    "rol": "plantilla 1",
+    "plantilla": [
+      {
+        "id": 1,
+        "text": "Title"
+      },
+      {
+        "id": 2,
+        "text": "Description"
+      },
+      {
+        "id": 3,
+        "text": "Image"
+      },
+      {
+        "id": 4,
+        "text": "Price"
+      }
+    ]
+  },
+  {
+    "rol": "plantilla 2",
+    "plantilla": [
+      {
+        "id": 2,
+        "videoSrc": "https://www.youtube.com/embed/7lCDEYXw3mM"
+      },
+      {
+        "id": 4,
+        "price": "2000"
+      }
+    ]
+  }
+]

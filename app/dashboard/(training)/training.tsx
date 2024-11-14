@@ -4,6 +4,7 @@ import Container from "~/components/Container";
 import MaterialCard from "~/components/dashboard/training/MaterialCard";
 import { useProfile } from "~/hooks/useProfile";
 import { supabase } from "~/server/db";
+import { Text } from "~/components/ui";
 
 export default function Material() {
   const [refreshing, setRefreshing] = React.useState(false);
@@ -61,6 +62,7 @@ export default function Material() {
     >
       <Container>
         <View>
+          <Text className="flex text-2xl my-4 font-semibold">Courses</Text>
           {trainings.map((course) => (
             <View key={course.id}>
               <MaterialCard data={course} />

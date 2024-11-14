@@ -19,7 +19,7 @@ export default function Index() {
   const [taskStats, setTaskStats] = useState({
     total: 0,
     completed: 0,
-    incomplete: 0,
+    incomplete: { count: 0, tasks: {} },
   });
   const { colorScheme } = useColorScheme();
   const {

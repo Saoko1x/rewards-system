@@ -1,110 +1,106 @@
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import React, { useEffect, useState } from "react";
 import { Badge, Text } from "~/components/ui";
 import { Image } from "expo-image";
-
 import { useColorScheme } from "~/lib/useColorScheme";
-import { supabase } from "~/server/db";
 import { useProfile } from "~/hooks/useProfile";
+import { fetchAllTasks } from "~/server/query/allTasks";
+import { router } from "expo-router";
+
+// Definición del tipo para taskStats
+interface TaskStats {
+  total: number;
+  completed: number;
+  incomplete: {
+    count: number;
+    tasks: Array<{ id: number; name: string; type: string }>; // Asegúrate de que tasks sea un arreglo
+  };
+}
 
 export default function Tasks() {
+  const [taskStats, setTaskStats] = useState<TaskStats>({
+    total: 0,
+    completed: 0,
+    incomplete: { count: 0, tasks: [] }, // Asegúrate de que tasks sea un arreglo
+  });
   const { colorScheme } = useColorScheme();
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const { session, companyid, loading: profileLoading } = useProfile();
+  const {
+    companyid,
+    loading: profileLoading,
+    error: profileError,
+  } = useProfile();
 
   useEffect(() => {
-    if (session?.user && companyid !== null && !profileLoading) {
-      fetchUserTasks();
-    }
-  }, [session, companyid, profileLoading]);
-
-  const fetchUserTasks = async () => {
-    try {
-      if (!session?.user.id) throw new Error("User not authenticated");
-
-      // Obtener el perfil del usuario
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("userid", session.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-      if (!profile) throw new Error("Profile not found");
-
-      // Obtener las tareas del usuario con estado "pending"
-      const { data, error } = await supabase
-        .from("Task")
-        .select(
-          `
-          id,
-          status,
-          completedAt,
-          week:Week(name),
-          textTask:TextTask(name),
-          videoTask:VideoTask(name),
-          tipsTask:TipsTask(name)
-        `
-        )
-        .eq("completedById", profile.id)
-        .eq("status", "pending");
-
-      if (error) throw error;
-
-      if (data) {
-        setTasks(data);
-        setFetchError(null);
+    const loadTaskStats = async () => {
+      try {
+        // Asume que tienes acceso al companyId, si no, necesitarás obtenerlo de alguna manera
+        const stats = await fetchAllTasks(companyid!);
+        setTaskStats(stats);
+        console.log(stats.incomplete.tasks);
+      } catch (error) {
+        console.error("Error loading task stats:", error);
       }
-      setLoading(false);
-    } catch (error) {
-      setFetchError("Error fetching tasks");
-      setTasks([]);
-      console.error("Error fetching tasks", error);
-      setLoading(false);
-    }
-  };
+    };
 
-  if (loading || profileLoading) {
-    return (
-      <View className="mt-8 items-center justify-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+    loadTaskStats();
+  }, [companyid]);
 
   return (
     <>
-      {tasks.map((task) => {
-        const taskName =
-          task.textTask?.name || task.videoTask?.name || task.tipsTask?.name;
+      {profileLoading ? (
+        <View className="flex items-center justify-center h-96">
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      ) : (
+        <>
+          <View className="flex flex-col">
+            {taskStats.incomplete.tasks.slice(0, 5).map((task) => (
+              // <View key={task.id} className="flex flex-row justify-between">
+              //   <Text className="text-lg">{task.name}</Text>
+              //   {/* <Badge className="bg-red-500">{task.type}</Badge> */}
+              // </View>
+              <TouchableOpacity
+                key={task.id}
+                className="mt-6 flex flex-row items-center justify-between"
+                onPress={() =>
+                  // si task.type es regular, entonces navega a /system/${task.id}, si es boost navega a /boost/${task.id}, si es training navega a /training/${task.id}
+                  router.navigate(`/${task.type}/${task.id}`)
+                }
+              >
+                <View
+                  className="w-10 h-10 rounded-full mr-4 items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      colorScheme === "dark" ? "#232323" : "#232323",
+                  }}
+                >
+                  <Ionicons
+                    name={
+                      task.type === "system"
+                        ? "construct-outline"
+                        : task.type === "boost"
+                        ? "flash-outline"
+                        : "school-outline"
+                    }
+                    size={16}
+                    color={colorScheme === "dark" ? "white" : "white"}
+                  />
+                </View>
 
-        return (
-          <View
-            key={task.id}
-            className="mt-8 flex-row items-center justify-between"
-          >
-            <View className="flex-row items-center">
-              <Image
-                source={{ uri: "https://example.com/task-icon.png" }}
-                style={{ width: 40, height: 40 }}
-              />
-              <View className="ml-4">
-                <Text className="font-semibold text-white">
-                  {taskName || `Task ${task.id}`}
+                <Text className="font-semibold flex-1 ml-2">
+                  {task.name.length > 20
+                    ? `${task.name.slice(0, 40)}...`
+                    : task.name}
                 </Text>
-                <Text className="text-gray-500">
-                  {task.week?.name || "Weekly Task"}
-                </Text>
-              </View>
-            </View>
-            <Badge variant="default">
-              <Text>Pending</Text>
-            </Badge>
+                <Badge variant="outline">
+                  <Text>Pending</Text>
+                </Badge>
+              </TouchableOpacity>
+            ))}
           </View>
-        );
-      })}
+        </>
+      )}
     </>
   );
 }

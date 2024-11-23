@@ -1,16 +1,25 @@
-# Starter base
+# Hello
 
-A starting point to help you set up your project quickly and use the common components provided by `react-native-reusables`. The idea is to make it easier for you to get started.
+<!-- Haz una documentacion de un readme para una app de expo que usa yarn -->
 
-## Features
+# App
 
-- NativeWind v4
-- Dark and light mode
-    - Android Navigation Bar matches mode
-    - Persistant mode
-- Common components
-    - Icons, ThemeToggle, Avatar, Button, Card, Progress, Text, Tooltip
+## Description
 
-<img src="https://github.com/mrzachnugent/react-native-reusables/assets/63797719/42c94108-38a7-498b-9c70-18640420f1bc"
-     alt="starter-base-template"
-     style="width:270px;" />
+This is an app that uses expo and yarn.
+
+## Installation
+
+Run `yarn` to install all dependencies.
+
+## Usage
+
+Run `expo start` to start the app.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Authors
+
+- @saoko1x
